@@ -1,22 +1,32 @@
 import path from 'path'
-import {exec} from 'child_process'
 import psList from 'ps-list';
+import {execute, delay} from './functions'
 
-export const execute = (command='cd',options={}) => new Promise((resolve,reject)=>{
-	const {verbose, logCommand, debug, ...otherOptions} = options
-	if(debug || logCommand){
-		options.cwd ? console.log(`[${options.cwd}]: ${command}`) : console.log(command)
-		resolve(command)
-	}
-	if(!debug) {
-		const e = exec(command,otherOptions,(err,stdo)=>err ? reject(err) : resolve(stdo))
-		verbose && e.stdout.on('data',txt=>console.log(txt))
-		verbose && e.stderr.on('data',txt=>console.error(txt))
-	}
-	
-})
+// example commands:
+// npm start -- Kinglet
+// npm start -- --override-exe Base/Binaries/Win64EOS/CivilizationVI_DX12.exe Kinglet
+// --override-exe must be relative to the install directory
 
-const delay = (time) => new Promise(resolve=>setTimeout(resolve,time))
+const DEBUG_MODE = true
+
+const args = process.argv.slice(2)
+const options = args.slice(0,-1).join(' ')
+const epicName = args[args.length-1]
+
+DEBUG_MODE && console.log(epicName)
+DEBUG_MODE && console.log(options)
+
+let overrideExeArg = ''
+if(options.includes('--override-exe')){
+	const oSplit = options.split(' ')
+	const overrideIndex = oSplit.indexOf('--override-exe')
+	overrideExeArg = oSplit[overrideIndex+1]
+}
+
+if(!epicName){
+	console.log('Add the epic games name as a command line argument')
+	process.exit(1)
+}
 
 let startTime = new Date()
 let initialWait = 120
@@ -62,20 +72,21 @@ const waitForProcess = (name) => {
 	)
 }
 
-const epicName = 'Kinglet'
-
-const overrideExe = path.resolve('D:/Program Files/Epic Games/SidMeiersCivilizationVI/Base/Binaries/Win64EOS/CivilizationVI_DX12.exe')
-
 execute(`legendary list-installed --json`)
 .then(res=>{
 	const installed_games = JSON.parse(res)
 	const game = installed_games.find(game=>game.app_name === epicName)
 	if(game){
-		console.log(game)
+		DEBUG_MODE && console.log(game)
 		let executableName = path.basename(game.executable)
-		const overrideCommand = overrideExe ? `--override-exe "${overrideExe}"` : ''
+		let overrideCommand = ''
+		let overrideExe = ''
+		if(overrideExeArg){
+			overrideExe = path.resolve(game.install_path,overrideExeArg)
+			overrideCommand = `--override-exe "${overrideExe}"`
+		}
 		return (
-			execute(`legendary launch ${overrideCommand} ${epicName}`,{verbose: true, debug: true})
+			execute(`legendary launch ${overrideCommand} ${epicName}`,{verbose: true, debug: DEBUG_MODE})
 			.then(()=>waitForProcess(overrideExe ? path.basename(overrideExe) : executableName))
 		)
 	} else {
@@ -84,5 +95,3 @@ execute(`legendary list-installed --json`)
 		return Promise.reject(message)
 	}
 })
-
-// launch --override-exe "D:\Program Files\Epic Games\SidMeiersCivilizationVI\Base\Binaries\Win64EOS\CivilizationVI_DX12.exe" Kinglet

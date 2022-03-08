@@ -7,7 +7,7 @@ import {execute, delay} from './functions'
 // npm start -- --override-exe Base/Binaries/Win64EOS/CivilizationVI_DX12.exe Kinglet
 // --override-exe must be relative to the install directory
 
-const DEBUG_MODE = true
+const DEBUG_MODE = false
 
 const args = process.argv.slice(2)
 const options = args.slice(0,-1).join(' ')

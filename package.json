@@ -1,0 +1,16 @@
+{
+  "name": "epic-launcher",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx --yes cross-env NODE_ENV=development npx --yes nodemon --es-module-specifier-resolution=node --inspect index",
+    "start": "node --es-module-specifier-resolution=node index",
+    "clean": "npx --yes rimraf node_modules transpiled package-lock.json"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ps-list": "^8.1.0"
+  }
+}

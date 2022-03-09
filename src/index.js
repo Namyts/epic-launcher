@@ -1,27 +1,28 @@
+#!/usr/bin/env node --es-module-specifier-resolution=node
+
 import path from 'path'
 import psList from 'ps-list';
 import {execute, delay} from './functions'
+import commandLineArgs from 'command-line-args'
 
 // example commands:
 // npm start -- Kinglet
-// npm start -- --override-exe Base/Binaries/Win64EOS/CivilizationVI_DX12.exe Kinglet
+// npm start -- Kinglet --override-exe Base/Binaries/Win64EOS/CivilizationVI_DX12.exe
 // --override-exe must be relative to the install directory
 
-const DEBUG_MODE = false
+const argDefinitions = [
+	{ name: 'app', type: String, defaultOption: true },
+	{ name: 'debug', alias: 'd', type: Boolean },
+	{ name: 'override-exe', alias: 'e', type: String },
+]
+const args = commandLineArgs(argDefinitions,{stopAtFirstUnknown: true})
 
-const args = process.argv.slice(2)
-const options = args.slice(0,-1).join(' ')
-const epicName = args[args.length-1]
 
-DEBUG_MODE && console.log(epicName)
-DEBUG_MODE && console.log(options)
+const DEBUG_MODE = args.debug
+const epicName = args.app
+const overrideExeArg = args["override-exe"]
 
-let overrideExeArg = ''
-if(options.includes('--override-exe')){
-	const oSplit = options.split(' ')
-	const overrideIndex = oSplit.indexOf('--override-exe')
-	overrideExeArg = oSplit[overrideIndex+1]
-}
+DEBUG_MODE && console.log(args)
 
 if(!epicName){
 	console.log('Add the epic games name as a command line argument')
@@ -78,7 +79,6 @@ execute(`legendary list-installed --json`)
 	const game = installed_games.find(game=>game.app_name === epicName)
 	if(game){
 		DEBUG_MODE && console.log(game)
-		let executableName = path.basename(game.executable)
 		let overrideCommand = ''
 		let overrideExe = ''
 		if(overrideExeArg){
@@ -87,7 +87,7 @@ execute(`legendary list-installed --json`)
 		}
 		return (
 			execute(`legendary launch ${overrideCommand} ${epicName}`,{verbose: true, debug: DEBUG_MODE})
-			.then(()=>waitForProcess(overrideExe ? path.basename(overrideExe) : executableName))
+			.then(()=>waitForProcess(overrideExe ? path.basename(overrideExe) : path.basename(game.executable)))
 		)
 	} else {
 		const message = `${epicName} can't be found, or isn't installed...`

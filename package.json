@@ -3,14 +3,14 @@
 	"type": "module",
 	"version": "1.0.0",
 	"bin": {
-		"epic-launcher": "./src/bin.js"
+		"epic-launcher": "./src/index.js"
 	},
 	"scripts": {
-		"dev": "npx --yes cross-env NODE_ENV=development npx --yes nodemon --es-module-specifier-resolution=node --inspect ./src/index",
-		"start": "node --es-module-specifier-resolution=node ./src/index",
+		"dev": "node --es-module-specifier-resolution=node ./src/index.js",
 		"clean": "npx --yes rimraf node_modules transpiled package-lock.json"
 	},
 	"dependencies": {
+		"command-line-args": "^5.2.1",
 		"ps-list": "^8.1.0"
 	}
 }

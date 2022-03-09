@@ -12,3 +12,9 @@ Given an epic games app name eg: Kinglet (Civ 6)
 ## Why
 - Legendary command line exits after the game launch is initiated. This means that adding the game to Steam shows you playing the game for approximately 10 seconds
 - This tool remains open for as long as the game does
+
+## How to use
+- Download this repo
+- npm install
+- npm link
+- epic-launcher --override-exe Base/Binaries/Win64EOS/CivilizationVI_DX12.exe Kinglet

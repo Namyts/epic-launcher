@@ -8,17 +8,16 @@ import commandLineArgs from 'command-line-args'
 // example commands:
 // npm start -- Kinglet
 // npm start -- Kinglet --override-exe Base/Binaries/Win64EOS/CivilizationVI_DX12.exe
-// --override-exe must be relative to the install directory
 
 const argDefinitions = [
 	{ name: 'app', type: String, defaultOption: true },
-	{ name: 'debug', alias: 'd', type: Boolean },
+	{ name: 'dry-run', type: Boolean },
 	{ name: 'override-exe', alias: 'e', type: String },
 ]
 const args = commandLineArgs(argDefinitions,{stopAtFirstUnknown: true})
 
 
-const DEBUG_MODE = args.debug
+const DEBUG_MODE = args["dry-run"]
 const epicName = args.app
 const overrideExeArg = args["override-exe"]
 
@@ -86,8 +85,8 @@ execute(`legendary list-installed --json`)
 			overrideCommand = `--override-exe "${overrideExe}"`
 		}
 		return (
-			execute(`legendary launch ${overrideCommand} ${epicName}`,{verbose: true, debug: DEBUG_MODE})
-			.then(()=>waitForProcess(overrideExe ? path.basename(overrideExe) : path.basename(game.executable)))
+			execute(`legendary launch ${process.argv.slice(2).join(' ')}`,{verbose: true, debug: DEBUG_MODE})
+			.then(()=>DEBUG_MODE ? Promise.resolve() : waitForProcess(overrideExe ? path.basename(overrideExe) : path.basename(game.executable)))
 		)
 	} else {
 		const message = `${epicName} can't be found, or isn't installed...`

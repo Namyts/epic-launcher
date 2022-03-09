@@ -2,6 +2,11 @@ import path, { dirname } from 'path'
 import { fileURLToPath } from 'url';
 import {exec} from 'child_process'
 
+export const joinArgs = (args) => {
+	const quoteArgs = args.map(a=>a.includes(" ") ? `"${a}"` : a)
+	return quoteArgs.join(' ')
+}
+
 export const getThisDir = () => path.resolve(dirname(fileURLToPath(import.meta.url)),'..')
 
 export const execute = (command='cd',options={}) => new Promise((resolve,reject)=>{

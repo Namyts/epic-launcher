@@ -2,12 +2,8 @@
 
 import path from 'path'
 import psList from 'ps-list';
-import {execute, delay} from './functions'
+import {execute, delay, joinArgs} from './functions'
 import commandLineArgs from 'command-line-args'
-
-// example commands:
-// npm start -- Kinglet
-// npm start -- Kinglet --override-exe Base/Binaries/Win64EOS/CivilizationVI_DX12.exe
 
 const argDefinitions = [
 	{ name: 'app', type: String, defaultOption: true },
@@ -78,15 +74,10 @@ execute(`legendary list-installed --json`)
 	const game = installed_games.find(game=>game.app_name === epicName)
 	if(game){
 		DEBUG_MODE && console.log(game)
-		let overrideCommand = ''
-		let overrideExe = ''
-		if(overrideExeArg){
-			overrideExe = path.resolve(game.install_path,overrideExeArg)
-			overrideCommand = `--override-exe "${overrideExe}"`
-		}
+		const exeName = overrideExeArg || game.executable
 		return (
-			execute(`legendary launch ${process.argv.slice(2).join(' ')}`,{verbose: true, debug: DEBUG_MODE})
-			.then(()=>DEBUG_MODE ? Promise.resolve() : waitForProcess(overrideExe ? path.basename(overrideExe) : path.basename(game.executable)))
+			execute(`legendary launch ${joinArgs(process.argv.slice(2))}`,{verbose: true, debug: DEBUG_MODE})
+			.then(()=>DEBUG_MODE ? Promise.resolve() : waitForProcess(path.basename(exeName)))
 		)
 	} else {
 		const message = `${epicName} can't be found, or isn't installed...`

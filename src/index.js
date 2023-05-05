@@ -2,7 +2,7 @@
 
 import path from 'path'
 import commandLineArgs from 'command-line-args'
-import {close, execute, findProcess, waitForProcess} from './functions.js'
+import {close, delay, execute, findProcess, waitForProcess} from './functions.js'
 
 const argDefinitions = [
 	{ name: 'debug', type: Boolean },
@@ -29,21 +29,21 @@ switch(service){
 			process.exit(1)
 		}
 		execute(`legendary list-installed --json`)
-			.then(res=>{
-				const installed_games = JSON.parse(res)
-				const game = installed_games.find(game=>game.app_name === epicName)
-				if(game){
-					DEBUG_MODE && console.log(game)
-					const exeName = overrideExeArg || game.executable
-					return (
-						execute(`legendary launch ${epicName} ${overrideExeArg?`--override-exe ${overrideExeArg}`:''}`,{verbose: true, debug: DEBUG_MODE})
-						.then(()=>DEBUG_MODE ? Promise.resolve() : waitForProcess(path.basename(exeName)))
-					)
-				} else {
-					return Promise.reject(`${epicName} can't be found, or isn't installed...`)
-				}
-			})
-			.catch(err=>close(err))
+		.then(res=>{
+			const installed_games = JSON.parse(res)
+			const game = installed_games.find(game=>game.app_name === epicName)
+			if(game){
+				DEBUG_MODE && console.log(game)
+				const exeName = overrideExeArg || game.executable
+				return (
+					execute(`legendary launch ${epicName} ${overrideExeArg?`--override-exe ${overrideExeArg}`:''}`,{verbose: true, debug: DEBUG_MODE})
+					.then(()=>DEBUG_MODE ? Promise.resolve() : waitForProcess(path.basename(exeName)))
+				)
+			} else {
+				return Promise.reject(`${epicName} can't be found, or isn't installed...`)
+			}
+		})
+		.catch(err=>close(err))
 		break;
 	}
 	case "ea": {
@@ -63,7 +63,14 @@ switch(service){
 				})
 			)
 		}
-		execute(`start /b "${exeName.replaceAll("\\\\","\\")}"`,{verbose: true, debug: DEBUG_MODE})
+		console.log(`Keep this window open while playing ${exeName}, it will auto close, and kill EA App`)
+		try{
+			execute(`${exeName.replaceAll("\\\\","\\")}`,{verbose: true, debug: DEBUG_MODE})
+			.catch(e=>console.log('Minor error when launching... attempting to continue...'))
+		}catch(e){
+			console.log('Dodging a sneaky error')
+		}
+		delay(5000)
 		.then(()=>DEBUG_MODE ? Promise.resolve() : waitForProcess(path.basename(exeName), {onClose: closeEA}))
 		break;
 	}

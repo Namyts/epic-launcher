@@ -36,13 +36,18 @@ let initialPollTime = 5
 let runningPollTime = 10
 let runningProcess = null
 
-export const waitForProcess = (name) => {
+export const findProcess = (name) => (
+	psList()
+	.then(processes=>processes.find(p=>p.name === name))
+)
+
+export const waitForProcess = (name,options={}) => {
+	const {onClose} = options
 	const message = runningProcess ? `[Checking]: ${name}` : `[Searching]: ${name}`
 	console.log(message)
 	return (
-		psList()
-		.then(processes=>{
-			const foundProcess = processes.find(p=>p.name === name)
+		findProcess(name)
+		.then(foundProcess=>{
 			if(foundProcess){
 				if(!runningProcess){ 
 					console.log('The game has been detected!')
@@ -50,19 +55,22 @@ export const waitForProcess = (name) => {
 				}
 				return (
 					delay(runningPollTime*1000)
-					.then(()=>waitForProcess(name))
+					.then(()=>waitForProcess(name,options))
 				)
 			} else {
 				if(runningProcess){
 					console.log('The game has been closed!')
-					process.exit()
+					runningProcess = null
+					Promise.resolve(onClose ? onClose() : null)
+					.then(()=>process.exit())
+					.catch(err=>close(err))
 				} else {
 					if((new Date())-startTime > initialWait*1000){
 						return Promise.reject('Failed to launch the game :(')
 					} else {
 						return (
 							delay(initialPollTime*1000)
-							.then(()=>waitForProcess(name))
+							.then(()=>waitForProcess(name,options))
 						)
 					}
 				}

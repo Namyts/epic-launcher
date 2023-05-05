@@ -2,14 +2,15 @@
 
 import path from 'path'
 import commandLineArgs from 'command-line-args'
-import {close, execute, joinArgs, waitForProcess} from './functions.js'
+import {close, execute, findProcess, waitForProcess} from './functions.js'
 
 const argDefinitions = [
 	{ name: 'debug', type: Boolean },
 	{ name: 'service', type: String, defaultOption: true },
 	{ name: 'epic-game', type: String },
 	{ name: 'epic-override-exe', type: String },
-	{ name: 'epic-other-args', type: String }
+	{ name: 'epic-other-args', type: String },
+	{ name: 'ea-game-exe', type: String }
 ]
 const args = commandLineArgs(argDefinitions,{stopAtFirstUnknown: true})
 
@@ -46,6 +47,24 @@ switch(service){
 		break;
 	}
 	case "ea": {
+		const eaLauncher = "EADesktop.exe"
+		const exeName = args["ea-game-exe"]
+		const closeEA = () => {
+			return (
+				findProcess(eaLauncher)
+				.then(foundProcess=>{
+					if(foundProcess){
+						const eaLauncherPID = foundProcess.pid
+						console.log(`Killing ${eaLauncher}`)
+						return execute(`taskkill /PID ${eaLauncherPID}`)
+					} else {
+						return close("EA app was not found, or failed to be killed")
+					}
+				})
+			)
+		}
+		execute(`start /b "${exeName.replaceAll("\\\\","\\")}"`,{verbose: true, debug: DEBUG_MODE})
+		.then(()=>DEBUG_MODE ? Promise.resolve() : waitForProcess(path.basename(exeName), {onClose: closeEA}))
 		break;
 	}
 	default: {

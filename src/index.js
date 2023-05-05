@@ -52,9 +52,7 @@ const waitForProcess = (name) => {
 					process.exit()
 				} else {
 					if((new Date())-startTime > initialWait*1000){
-						const message = 'Failed to launch the game :('
-						console.error(message)
-						return Promise.reject(message)
+						return Promise.reject('Failed to launch the game :(')
 					} else {
 						return (
 							delay(initialPollTime*1000)
@@ -80,8 +78,13 @@ execute(`legendary list-installed --json`)
 			.then(()=>DEBUG_MODE ? Promise.resolve() : waitForProcess(path.basename(exeName)))
 		)
 	} else {
-		const message = `${epicName} can't be found, or isn't installed...`
-		console.log(message)
-		return Promise.reject(message)
+		return Promise.reject(`${epicName} can't be found, or isn't installed...`)
 	}
+})
+.catch(err=>{
+	console.error(err)
+	return (
+		new Promise((resolve,reject)=>setTimeout(resolve,5000))
+		.then(()=>process.exit(1))
+	)
 })

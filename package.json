@@ -1,9 +1,9 @@
 {
-	"name": "epic-launcher",
+	"name": "drm-game-launcher",
 	"type": "module",
 	"version": "1.0.0",
 	"bin": {
-		"epic-launcher": "./src/index.js"
+		"drm-game-launcher": "./src/index.js"
 	},
 	"scripts": {
 		"dev": "node --es-module-specifier-resolution=node ./src/index.js",
